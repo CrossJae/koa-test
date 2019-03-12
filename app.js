@@ -3,8 +3,13 @@ const http = require('http')
 const Koa = require('koa')
 const app = new Koa()
 
+app.keys = ['abc', '123']
+
 app.use(async (ctx, next) => {
+    console.log('cookie:::>', ctx.cookies.get('name', { signed: true }))
     console.log('step 1')
+    // 为cookie加密
+    ctx.cookies.set('name', 'cross', { signed: true })
     await next()
     // 以下内容是最后会执行的
     console.log('step 5')
