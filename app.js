@@ -9,6 +9,25 @@ app.keys = ['abc', '123']
 app.context.baseApi = '//test.xxx.com/'
 app.context.sayHi = () => `使用context获得api地址：`
 
+app.on('error', (err, ctx) => {
+    // console.log('server err:::>', err)
+    // 不能将错误显示在body中，页面只会显示Internal Server Error
+    // ctx.body = err
+})
+
+// 创建一个错误捕获的中间件
+app.use(async (ctx, next) => {
+    try {
+        await next()
+    }catch(err) {
+        ctx.body = `status: ${err.status}, mes: ${err.message}`
+    }
+})
+
+app.use(async ctx => {
+    ctx.throw(500, '出错啦')
+})
+
 app.use(async (ctx, next) => {
     console.log('cookie:::>', ctx.cookies.get('name', { signed: true }))
     console.log('step 1')
