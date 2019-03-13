@@ -3,8 +3,36 @@ const http = require('http')
 const Koa = require('koa')
 const app = new Koa()
 
+app.keys = ['abc', '123']
+
+// 可以在context上创建属性，但不建议过多的使用
+app.context.baseApi = '//test.xxx.com/'
+app.context.sayHi = () => `使用context获得api地址：`
+
+app.on('error', (err, ctx) => {
+    // console.log('server err:::>', err)
+    // 不能将错误显示在body中，页面只会显示Internal Server Error
+    // ctx.body = err
+})
+
+// 创建一个错误捕获的中间件
 app.use(async (ctx, next) => {
+    try {
+        await next()
+    }catch(err) {
+        ctx.body = `status: ${err.status}, mes: ${err.message}`
+    }
+})
+
+app.use(async ctx => {
+    ctx.throw(500, '出错啦')
+})
+
+app.use(async (ctx, next) => {
+    console.log('cookie:::>', ctx.cookies.get('name', { signed: true }))
     console.log('step 1')
+    // 为cookie加密
+    ctx.cookies.set('name', 'cross', { signed: true })
     await next()
     // 以下内容是最后会执行的
     console.log('step 5')
@@ -23,7 +51,7 @@ app.use(async (ctx, next) => {
 
 app.use(async ctx => {
     console.log('step 3')
-    ctx.body = 'Hello World!'
+    ctx.body = ctx.sayHi() + ctx.baseApi //'Hello World!'
 })
 
 // app.listen(3000)
